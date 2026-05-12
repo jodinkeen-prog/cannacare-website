@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import { FORMSPREE_ENDPOINT, parseFormspreeJson } from "@/lib/formspree";
 
 const states = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
@@ -22,7 +22,6 @@ export default function ConsultationForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const submitGenerationRef = useRef(0);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -54,9 +53,6 @@ export default function ConsultationForm() {
       return;
     }
 
-    submitGenerationRef.current += 1;
-    const generation = submitGenerationRef.current;
-
     setError("");
     setSuccess("");
     setLoading(true);
@@ -70,35 +66,31 @@ export default function ConsultationForm() {
           headers: { Accept: "application/json" }
         });
       } catch {
-        if (generation !== submitGenerationRef.current) return;
         setSuccess("");
         setError("Network error. Please check your connection and try again.");
         return;
       }
 
-      const data = await parseFormspreeJson(response);
+      console.log("[Formspree]", response.status, response.ok);
 
-      if (generation !== submitGenerationRef.current) return;
-
-      if (!response.ok) {
-        setSuccess("");
-        setError(data.error?.trim() || "Something went wrong. Please try again.");
+      if (response.ok) {
+        setError("");
+        setSuccess(
+          `Thank you, ${payload.fullName}. Your enquiry has been received. A member of our team will be in touch within 1–2 business days to discuss next steps. Please note this is not a medical assessment.`
+        );
+        try {
+          event.currentTarget.reset();
+        } catch {
+          /* ignore reset edge cases */
+        }
         return;
       }
 
-      setError("");
-      setSuccess(
-        `Thank you, ${payload.fullName}. Your enquiry has been received. A member of our team will be in touch within 1–2 business days to discuss next steps. Please note this is not a medical assessment.`
-      );
-      try {
-        event.currentTarget.reset();
-      } catch {
-        /* ignore reset edge cases */
-      }
+      const data = await parseFormspreeJson(response);
+      setSuccess("");
+      setError(data.error?.trim() || "Something went wrong. Please try again.");
     } finally {
-      if (generation === submitGenerationRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 

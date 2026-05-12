@@ -1,13 +1,12 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import { FORMSPREE_ENDPOINT, parseFormspreeJson } from "@/lib/formspree";
 
 export default function ContactForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const submitGenerationRef = useRef(0);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,9 +22,6 @@ export default function ContactForm() {
       return;
     }
 
-    submitGenerationRef.current += 1;
-    const generation = submitGenerationRef.current;
-
     setError("");
     setSuccess("");
     setLoading(true);
@@ -39,33 +35,29 @@ export default function ContactForm() {
           headers: { Accept: "application/json" }
         });
       } catch {
-        if (generation !== submitGenerationRef.current) return;
         setSuccess("");
         setError("Network error. Please check your connection and try again.");
         return;
       }
 
-      const data = await parseFormspreeJson(response);
+      console.log("[Formspree]", response.status, response.ok);
 
-      if (generation !== submitGenerationRef.current) return;
-
-      if (!response.ok) {
-        setSuccess("");
-        setError(data.error?.trim() || "Something went wrong. Please try again.");
+      if (response.ok) {
+        setError("");
+        setSuccess("Thank you. Your message has been received and our team will reply shortly.");
+        try {
+          event.currentTarget.reset();
+        } catch {
+          /* ignore reset edge cases */
+        }
         return;
       }
 
-      setError("");
-      setSuccess("Thank you. Your message has been received and our team will reply shortly.");
-      try {
-        event.currentTarget.reset();
-      } catch {
-        /* ignore reset edge cases */
-      }
+      const data = await parseFormspreeJson(response);
+      setSuccess("");
+      setError(data.error?.trim() || "Something went wrong. Please try again.");
     } finally {
-      if (generation === submitGenerationRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
