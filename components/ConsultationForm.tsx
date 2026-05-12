@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { FORMSPREE_ENDPOINT } from "@/lib/formspree";
 
 const states = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
 const reasons = [
@@ -16,8 +17,6 @@ const isValidAustralianPhone = (value: string): boolean => {
   const normalized = value.replace(/\s/g, "");
   return /^(\+61|0)[2-478](\d){8}$/.test(normalized) || /^(\+61|0)4\d{8}$/.test(normalized);
 };
-
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/mojrrkjg";
 
 export default function ConsultationForm() {
   const [error, setError] = useState("");
