@@ -219,8 +219,8 @@ export default function HomePage() {
                 Ready to Connect With a Licensed Health Professional?
               </h2>
               <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg">
-                Start the consultation pathway and connect with a registered Australian doctor.
-                Submitting an enquiry does not guarantee eligibility or a prescription.
+                Explore the consultation pathway with a registered Australian health professional.
+                Submitting an enquiry does not guarantee eligibility, a consultation, or any clinical pathway outcome.
               </p>
               <Link href="/consultation" className="cta-primary mt-8">
                 Go to Consultation Enquiry
@@ -243,8 +243,8 @@ export default function HomePage() {
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
                   Cannacare is a patient navigation and referral service, not a medical provider. We
-                  do not provide medical advice, prescribe medication, or promise outcomes. All
-                  recommendations are made by a qualified doctor after clinical assessment.
+                  do not provide medical advice or prescribe medication. Clinical assessment and any
+                  consultation pathway decisions are made solely by your treating licensed clinician.
                 </p>
               </div>
             </div>

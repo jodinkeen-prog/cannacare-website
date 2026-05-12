@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import ContactForm from "@/components/ContactForm";
+import { SUPPORT_EMAIL } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -24,7 +25,11 @@ export default function ContactPage() {
           <ContactForm />
           <div className="card-base p-6">
             <h2 className="text-xl font-bold text-navy">Contact Information</h2>
-            <p className="mt-3">hello@cannacare.com.au</p>
+            <p className="mt-3">
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-emerald underline-offset-2 hover:underline">
+                {SUPPORT_EMAIL}
+              </a>
+            </p>
             <p>Sydney, NSW, Australia</p>
             <p className="mt-3 text-sm text-slate-600">Typical response time: 1–2 business days.</p>
             <p className="mt-5 text-sm">Cannacare is not a medical provider. For urgent medical concerns, contact emergency services on 000.</p>

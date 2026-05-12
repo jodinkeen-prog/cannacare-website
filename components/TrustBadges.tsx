@@ -1,10 +1,12 @@
 import Reveal from "@/components/Reveal";
 
 const badges = [
-  "Australian Adults Only — 18+ Service",
-  "No Medical Advice Given",
-  "Licensed Clinic Referrals Only",
-  "TGA-Aware Navigation"
+  "Australian adults only — 18+",
+  "No medical advice given",
+  "Licensed clinic referrals only",
+  "TGA-aware navigation",
+  "Privacy-conscious enquiry process",
+  "Educational & connective service only"
 ];
 
 interface TrustBadgesProps {
@@ -55,7 +57,7 @@ export default function TrustBadges({ variant = "wide" }: TrustBadgesProps) {
   return (
     <section className="section-container py-12">
       <Reveal>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {badges.map((badge) => (
             <BadgeCard key={badge} label={badge} />
           ))}

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/lib/site";
 
 const quickLinks = [
   { href: "/", label: "Home" },
@@ -10,7 +11,7 @@ const quickLinks = [
 
 const legalLinks = [
   { href: "/privacy-policy", label: "Privacy Policy" },
-  { href: "/terms-of-use", label: "Terms of Use" },
+  { href: "/terms-of-use", label: "Terms & Conditions" },
   { href: "/medical-disclaimer", label: "Medical Disclaimer" }
 ];
 
@@ -62,9 +63,30 @@ export default function Footer() {
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-navy">
               Contact
             </h3>
-            <p className="text-sm text-slate-600">hello@cannacare.com.au</p>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="text-sm text-slate-600 transition hover:text-emerald"
+            >
+              {SUPPORT_EMAIL}
+            </a>
             <p className="mt-1.5 text-sm text-slate-600">Sydney, NSW, Australia</p>
           </div>
+        </div>
+        <div className="mt-10 flex flex-wrap gap-2">
+          {[
+            "18+ Australia",
+            "No medical advice",
+            "Licensed referrals",
+            "Privacy-conscious",
+            "Education only"
+          ].map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-soft-border bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm"
+            >
+              {tag}
+            </span>
+          ))}
         </div>
         <div className="mt-12 border-t border-soft-border pt-8">
           <p className="text-sm text-slate-600">
