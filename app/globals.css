@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-white text-slate-700 antialiased;
+}
+
+p {
+  @apply leading-relaxed;
+}
+
+.section-container {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.section-y {
+  @apply py-20 sm:py-24 lg:py-28;
+}
+
+.eyebrow {
+  @apply mb-3 inline-block text-xs font-semibold uppercase tracking-[0.18em] text-emerald;
+}
+
+.heading-display {
+  @apply text-4xl font-bold leading-tight tracking-tight text-navy sm:text-5xl lg:text-6xl;
+}
+
+.heading-section {
+  @apply text-3xl font-bold leading-tight tracking-tight text-navy sm:text-4xl;
+}
+
+.lede {
+  @apply mt-5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg;
+}
+
+.cta-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-emerald px-6 py-3 font-semibold text-white shadow-soft transition duration-300
+         hover:-translate-y-0.5 hover:bg-light-emerald hover:shadow-lg
+         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2;
+}
+
+.cta-secondary {
+  @apply inline-flex items-center justify-center rounded-full border border-white/70 px-6 py-3 font-semibold text-white transition duration-300
+         hover:-translate-y-0.5 hover:bg-white hover:text-navy hover:shadow-lg
+         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-navy;
+}
+
+.card-base {
+  @apply rounded-2xl border border-soft-border bg-white shadow-md;
+}
+
+.image-card {
+  @apply overflow-hidden rounded-3xl shadow-lg ring-1 ring-soft-border transition duration-300;
+}
+
+.image-card:hover {
+  @apply -translate-y-1 shadow-xl;
+}
+
+.section-heading {
+  @apply text-3xl font-bold text-navy sm:text-4xl;
+}
+
+.section-eyebrow {
+  @apply mb-2 text-xs font-semibold uppercase tracking-wider text-emerald;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 700ms ease-out, transform 700ms ease-out;
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
