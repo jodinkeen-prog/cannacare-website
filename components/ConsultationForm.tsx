@@ -191,8 +191,9 @@ export default function ConsultationForm() {
 
       <div className="space-y-2">
         <p className="rounded-xl border border-amber-200/80 bg-amber-50/90 p-3 text-sm leading-relaxed text-slate-700">
-          Please do not include urgent medical information or highly sensitive medical details. This form is for general
-          enquiry and navigation purposes only.
+          Please do not include urgent medical information or detailed clinical history in this form. General context only. A
+          licensed healthcare professional assigned to your enquiry can discuss your medical circumstances privately during
+          consultation if appropriate.
         </p>
         <textarea
           name="additionalContext"
