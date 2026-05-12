@@ -17,6 +17,8 @@ const isValidAustralianPhone = (value: string): boolean => {
   return /^(\+61|0)[2-478](\d){8}$/.test(normalized) || /^(\+61|0)4\d{8}$/.test(normalized);
 };
 
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mojrrkjg";
+
 export default function ConsultationForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -39,22 +41,35 @@ export default function ConsultationForm() {
     }
 
     setLoading(true);
-    const response = await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, type: "consultation" })
-    });
-    setLoading(false);
+    try {
+      const submitData = new FormData(event.currentTarget);
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        body: submitData,
+        headers: { Accept: "application/json" }
+      });
 
-    if (!response.ok) return setError("Something went wrong. Please try again.");
-    setSuccess(
-      `Thank you, ${payload.fullName}. Your enquiry has been received. A member of our team will be in touch within 1–2 business days to discuss next steps. Please note this is not a medical assessment.`
-    );
-    event.currentTarget.reset();
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+
+      if (!response.ok) {
+        setError(data.error?.trim() || "Something went wrong. Please try again.");
+        return;
+      }
+
+      setSuccess(
+        `Thank you, ${payload.fullName}. Your enquiry has been received. A member of our team will be in touch within 1–2 business days to discuss next steps. Please note this is not a medical assessment.`
+      );
+      event.currentTarget.reset();
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form onSubmit={onSubmit} className="card-base space-y-4 p-6">
+      <input type="hidden" name="_subject" value="Cannacare consultation enquiry" />
       <input name="fullName" placeholder="Full Name" required className="w-full rounded-xl border border-soft-border p-3" />
       <input name="email" placeholder="Email Address" required className="w-full rounded-xl border border-soft-border p-3" />
       <input name="phone" placeholder="Phone Number" required className="w-full rounded-xl border border-soft-border p-3" />
