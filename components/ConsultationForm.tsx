@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
-import { FORMSPREE_ENDPOINT } from "@/lib/formspree";
+import { FORMSPREE_ENDPOINT, parseFormspreeJson } from "@/lib/formspree";
 
 const states = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
 const reasons = [
@@ -24,16 +24,6 @@ export default function ConsultationForm() {
   const [loading, setLoading] = useState(false);
   const submitGenerationRef = useRef(0);
 
-  const showError = (message: string) => {
-    setSuccess("");
-    setError(message);
-  };
-
-  const showSuccess = (message: string) => {
-    setError("");
-    setSuccess(message);
-  };
-
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
@@ -43,41 +33,68 @@ export default function ConsultationForm() {
 
     const required = ["fullName", "email", "phone", "state", "reason", "preferredContactMethod"];
     const missing = required.some((key) => !payload[key]);
-    if (missing) return showError("Please complete all required fields.");
-    if (!/\S+@\S+\.\S+/.test(payload.email)) return showError("Please enter a valid email address.");
-    if (!isValidAustralianPhone(payload.phone)) return showError("Please enter a valid Australian phone number.");
+    if (missing) {
+      setSuccess("");
+      setError("Please complete all required fields.");
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(payload.email)) {
+      setSuccess("");
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!isValidAustralianPhone(payload.phone)) {
+      setSuccess("");
+      setError("Please enter a valid Australian phone number.");
+      return;
+    }
     if (!(payload.ageConfirmed && payload.consent && payload.disclaimerAccepted && payload.australiaConfirmed)) {
-      return showError("All required confirmations and consent checkboxes must be checked.");
+      setSuccess("");
+      setError("All required confirmations and consent checkboxes must be checked.");
+      return;
     }
 
     submitGenerationRef.current += 1;
     const generation = submitGenerationRef.current;
 
+    setError("");
+    setSuccess("");
     setLoading(true);
-    try {
-      const submitData = new FormData(event.currentTarget);
-      const response = await fetch(FORMSPREE_ENDPOINT, {
-        method: "POST",
-        body: submitData,
-        headers: { Accept: "application/json" }
-      });
 
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
+    try {
+      let response: Response;
+      try {
+        response = await fetch(FORMSPREE_ENDPOINT, {
+          method: "POST",
+          body: new FormData(event.currentTarget),
+          headers: { Accept: "application/json" }
+        });
+      } catch {
+        if (generation !== submitGenerationRef.current) return;
+        setSuccess("");
+        setError("Network error. Please check your connection and try again.");
+        return;
+      }
+
+      const data = await parseFormspreeJson(response);
 
       if (generation !== submitGenerationRef.current) return;
 
       if (!response.ok) {
-        showError(data.error?.trim() || "Something went wrong. Please try again.");
+        setSuccess("");
+        setError(data.error?.trim() || "Something went wrong. Please try again.");
         return;
       }
 
-      showSuccess(
+      setError("");
+      setSuccess(
         `Thank you, ${payload.fullName}. Your enquiry has been received. A member of our team will be in touch within 1–2 business days to discuss next steps. Please note this is not a medical assessment.`
       );
-      event.currentTarget.reset();
-    } catch {
-      if (generation !== submitGenerationRef.current) return;
-      showError("Network error. Please check your connection and try again.");
+      try {
+        event.currentTarget.reset();
+      } catch {
+        /* ignore reset edge cases */
+      }
     } finally {
       if (generation === submitGenerationRef.current) {
         setLoading(false);
@@ -106,8 +123,11 @@ export default function ConsultationForm() {
       <label className="block text-sm"><input type="checkbox" name="consent" value="true" /> I consent to Cannacare contacting me regarding my enquiry and storing my information in accordance with the Privacy Policy.</label>
       <label className="block text-sm"><input type="checkbox" name="disclaimerAccepted" value="true" /> I understand that Cannacare is not a medical provider, does not prescribe medication, and that submitting this form does not guarantee eligibility, a consultation, or any treatment outcome.</label>
       <label className="block text-sm"><input type="checkbox" name="australiaConfirmed" value="true" /> I confirm I am located in Australia and am 18 years of age or older.</label>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="text-sm text-emerald">{success}</p> : null}
+      {success ? (
+        <p className="text-sm text-emerald">{success}</p>
+      ) : error ? (
+        <p className="text-sm text-red-600">{error}</p>
+      ) : null}
       <button disabled={loading} className="cta-primary disabled:opacity-70">{loading ? "Submitting..." : "Submit Enquiry"}</button>
     </form>
   );
