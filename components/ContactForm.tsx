@@ -1,12 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { FORMSPREE_ENDPOINT, parseFormspreeJson } from "@/lib/formspree";
+import { FormEvent, useRef, useState } from "react";
+import TurnstileField from "@/components/TurnstileField";
+import { parseFormspreeJson } from "@/lib/formspree";
+import type { TurnstileInstance } from "@marsidev/react-turnstile";
 
 export default function ContactForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,6 +25,13 @@ export default function ContactForm() {
       return;
     }
 
+    const turnstileToken = turnstileRef.current?.getResponse?.();
+    if (!turnstileToken?.trim()) {
+      setSuccess("");
+      setError("Please complete the security check before submitting.");
+      return;
+    }
+
     setError("");
     setSuccess("");
     setLoading(true);
@@ -29,18 +39,21 @@ export default function ContactForm() {
     try {
       let response: Response;
       try {
-        response = await fetch(FORMSPREE_ENDPOINT, {
+        const submitData = new FormData(event.currentTarget);
+        submitData.delete("cf-turnstile-response");
+        submitData.append("cf-turnstile-response", turnstileToken.trim());
+
+        response = await fetch("/api/formspree", {
           method: "POST",
-          body: new FormData(event.currentTarget),
+          body: submitData,
           headers: { Accept: "application/json" }
         });
       } catch {
         setSuccess("");
         setError("Network error. Please check your connection and try again.");
+        turnstileRef.current?.reset?.();
         return;
       }
-
-      console.log("[Formspree]", response.status, response.ok);
 
       if (response.ok) {
         setError("");
@@ -50,12 +63,14 @@ export default function ContactForm() {
         } catch {
           /* ignore reset edge cases */
         }
+        turnstileRef.current?.reset?.();
         return;
       }
 
       const data = await parseFormspreeJson(response);
       setSuccess("");
       setError(data.error?.trim() || "Something went wrong. Please try again.");
+      turnstileRef.current?.reset?.();
     } finally {
       setLoading(false);
     }
@@ -75,6 +90,7 @@ export default function ContactForm() {
       </select>
       <textarea name="message" required placeholder="Message" className="w-full rounded-xl border border-soft-border p-3" />
       <label className="block text-sm"><input type="checkbox" name="consent" value="true" /> I consent to Cannacare storing this information to respond to my enquiry.</label>
+      <TurnstileField ref={turnstileRef} className="flex justify-start" />
       {success ? (
         <p className="text-sm text-emerald">{success}</p>
       ) : error ? (
