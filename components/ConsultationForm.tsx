@@ -1,17 +1,20 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState } from "react";
 import { FORMSPREE_ENDPOINT, parseFormspreeJson } from "@/lib/formspree";
 
 const states = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
 const reasons = [
-  "Chronic Pain Management",
-  "Sleep-Related Concerns",
-  "Anxiety-Related Concerns",
-  "Neurological Conditions",
-  "Palliative Support",
+  "Sleep & Rest",
+  "Physical Wellbeing",
+  "Mental Wellbeing",
+  "General Education",
+  "Clinic Referral",
   "Other"
 ];
+
+const contactTimes = ["Morning", "Afternoon", "Evening", "Anytime"];
+const consultationTypes = ["Phone", "Video", "No preference"];
 
 const isValidAustralianPhone = (value: string): boolean => {
   const normalized = value.replace(/\s/g, "");
@@ -30,7 +33,16 @@ export default function ConsultationForm() {
     const formData = new FormData(event.currentTarget);
     const payload = Object.fromEntries(formData.entries()) as Record<string, string>;
 
-    const required = ["fullName", "email", "phone", "state", "reason", "preferredContactMethod"];
+    const required = [
+      "fullName",
+      "email",
+      "phone",
+      "state",
+      "reason",
+      "consultationType",
+      "preferredContactMethod",
+      "bestContactTime"
+    ];
     const missing = required.some((key) => !payload[key]);
     if (missing) {
       setSuccess("");
@@ -98,12 +110,35 @@ export default function ConsultationForm() {
       <input name="email" placeholder="Email Address" required className="w-full rounded-xl border border-soft-border p-3" />
       <input name="phone" placeholder="Phone Number" required className="w-full rounded-xl border border-soft-border p-3" />
       <select name="state" required className="w-full rounded-xl border border-soft-border p-3">
-        <option value="">State / Territory</option>{states.map((s) => <option key={s}>{s}</option>)}
+        <option value="">State / Territory</option>
+        {states.map((s) => (
+          <option key={s}>{s}</option>
+        ))}
       </select>
       <select name="reason" required className="w-full rounded-xl border border-soft-border p-3">
-        <option value="">General reason for enquiry</option>{reasons.map((r) => <option key={r}>{r}</option>)}
+        <option value="">General reason for enquiry</option>
+        {reasons.map((r) => (
+          <option key={r}>{r}</option>
+        ))}
       </select>
-      <textarea name="additionalContext" maxLength={300} placeholder="You may share any additional context here. Do not include specific medical details." className="w-full rounded-xl border border-soft-border p-3" />
+
+      <div className="space-y-2">
+        <div id="consult-consultation-type-label" className="block text-sm text-slate-700">
+          Preferred consultation type
+        </div>
+        <select
+          name="consultationType"
+          required
+          className="w-full rounded-xl border border-soft-border p-3"
+          aria-labelledby="consult-consultation-type-label"
+        >
+          <option value="">Select preference</option>
+          {consultationTypes.map((t) => (
+            <option key={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="space-y-2" role="group" aria-labelledby="consult-preferred-contact-label">
         <div id="consult-preferred-contact-label" className="block text-sm text-slate-700">
           Preferred Contact Method
@@ -119,16 +154,62 @@ export default function ConsultationForm() {
           </label>
         </div>
       </div>
-      <label className="block text-sm"><input type="checkbox" name="ageConfirmed" value="true" /> I confirm I am 18 years of age or older</label>
-      <label className="block text-sm"><input type="checkbox" name="consent" value="true" /> I consent to Cannacare contacting me regarding my enquiry and storing my information in accordance with the Privacy Policy.</label>
-      <label className="block text-sm"><input type="checkbox" name="disclaimerAccepted" value="true" /> I understand that Cannacare is not a medical provider, does not prescribe medication, and that submitting this form does not guarantee eligibility, a consultation, or any treatment outcome.</label>
-      <label className="block text-sm"><input type="checkbox" name="australiaConfirmed" value="true" /> I confirm I am located in Australia and am 18 years of age or older.</label>
+
+      <div className="space-y-2">
+        <div id="consult-best-time-label" className="block text-sm text-slate-700">
+          Best contact time
+        </div>
+        <select
+          name="bestContactTime"
+          required
+          className="w-full rounded-xl border border-soft-border p-3"
+          aria-labelledby="consult-best-time-label"
+        >
+          <option value="">Select time window</option>
+          {contactTimes.map((t) => (
+            <option key={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-2">
+        <p className="rounded-xl border border-amber-200/80 bg-amber-50/90 p-3 text-sm leading-relaxed text-slate-700">
+          Please do not include urgent medical information or highly sensitive medical details. This form is for general
+          enquiry and navigation purposes only.
+        </p>
+        <textarea
+          name="additionalContext"
+          maxLength={500}
+          placeholder="Optional: brief, general context only (no detailed clinical history)."
+          className="w-full rounded-xl border border-soft-border p-3"
+          rows={4}
+        />
+      </div>
+
+      <label className="block text-sm">
+        <input type="checkbox" name="ageConfirmed" value="true" /> I confirm I am 18 years of age or older
+      </label>
+      <label className="block text-sm">
+        <input type="checkbox" name="consent" value="true" /> I consent to Cannacare contacting me regarding my enquiry and
+        storing my information in accordance with the Privacy Policy.
+      </label>
+      <label className="block text-sm">
+        <input type="checkbox" name="disclaimerAccepted" value="true" /> I understand that Cannacare is not a medical
+        provider, does not prescribe medication, and that submitting this form does not guarantee eligibility, a consultation,
+        or any clinical outcome.
+      </label>
+      <label className="block text-sm">
+        <input type="checkbox" name="australiaConfirmed" value="true" /> I confirm I am located in Australia and am 18 years
+        of age or older.
+      </label>
       {success ? (
         <p className="text-sm text-emerald">{success}</p>
       ) : error ? (
         <p className="text-sm text-red-600">{error}</p>
       ) : null}
-      <button disabled={loading} className="cta-primary disabled:opacity-70">{loading ? "Submitting..." : "Submit Enquiry"}</button>
+      <button disabled={loading} className="cta-primary disabled:opacity-70">
+        {loading ? "Submitting..." : "Submit Enquiry"}
+      </button>
     </form>
   );
 }
