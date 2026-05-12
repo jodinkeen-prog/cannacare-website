@@ -107,9 +107,12 @@ export default function ConsultationForm() {
         <option value="">General reason for enquiry</option>{reasons.map((r) => <option key={r}>{r}</option>)}
       </select>
       <textarea name="additionalContext" maxLength={300} placeholder="You may share any additional context here. Do not include specific medical details." className="w-full rounded-xl border border-soft-border p-3" />
-      <div className="flex gap-6 text-sm">
-        <label><input type="radio" name="preferredContactMethod" value="Email" required /> Email</label>
-        <label><input type="radio" name="preferredContactMethod" value="Phone" required /> Phone</label>
+      <div className="space-y-1.5">
+        <p className="text-sm font-medium text-navy">Preferred Contact Method</p>
+        <div className="flex gap-6 text-sm">
+          <label><input type="radio" name="preferredContactMethod" value="Email" required /> Email</label>
+          <label><input type="radio" name="preferredContactMethod" value="Phone" required /> Phone</label>
+        </div>
       </div>
       <label className="block text-sm"><input type="checkbox" name="ageConfirmed" value="true" /> I confirm I am 18 years of age or older</label>
       <label className="block text-sm"><input type="checkbox" name="consent" value="true" /> I consent to Cannacare contacting me regarding my enquiry and storing my information in accordance with the Privacy Policy.</label>
