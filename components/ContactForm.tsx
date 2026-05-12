@@ -1,12 +1,23 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { FORMSPREE_ENDPOINT } from "@/lib/formspree";
 
 export default function ContactForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const submitGenerationRef = useRef(0);
+
+  const showError = (message: string) => {
+    setSuccess("");
+    setError(message);
+  };
+
+  const showSuccess = (message: string) => {
+    setError("");
+    setSuccess(message);
+  };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -17,8 +28,11 @@ export default function ContactForm() {
       string
     >;
     if (!payload.name || !payload.email || !payload.subject || !payload.message || !payload.consent) {
-      return setError("Please complete all required fields.");
+      return showError("Please complete all required fields.");
     }
+
+    submitGenerationRef.current += 1;
+    const generation = submitGenerationRef.current;
 
     setLoading(true);
     try {
@@ -31,17 +45,22 @@ export default function ContactForm() {
 
       const data = (await response.json().catch(() => ({}))) as { error?: string };
 
+      if (generation !== submitGenerationRef.current) return;
+
       if (!response.ok) {
-        setError(data.error?.trim() || "Something went wrong. Please try again.");
+        showError(data.error?.trim() || "Something went wrong. Please try again.");
         return;
       }
 
-      setSuccess("Thank you. Your message has been received and our team will reply shortly.");
+      showSuccess("Thank you. Your message has been received and our team will reply shortly.");
       event.currentTarget.reset();
     } catch {
-      setError("Network error. Please check your connection and try again.");
+      if (generation !== submitGenerationRef.current) return;
+      showError("Network error. Please check your connection and try again.");
     } finally {
-      setLoading(false);
+      if (generation === submitGenerationRef.current) {
+        setLoading(false);
+      }
     }
   };
 

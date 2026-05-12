@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { FORMSPREE_ENDPOINT } from "@/lib/formspree";
 
 const states = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
@@ -22,6 +22,17 @@ export default function ConsultationForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const submitGenerationRef = useRef(0);
+
+  const showError = (message: string) => {
+    setSuccess("");
+    setError(message);
+  };
+
+  const showSuccess = (message: string) => {
+    setError("");
+    setSuccess(message);
+  };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,12 +43,15 @@ export default function ConsultationForm() {
 
     const required = ["fullName", "email", "phone", "state", "reason", "preferredContactMethod"];
     const missing = required.some((key) => !payload[key]);
-    if (missing) return setError("Please complete all required fields.");
-    if (!/\S+@\S+\.\S+/.test(payload.email)) return setError("Please enter a valid email address.");
-    if (!isValidAustralianPhone(payload.phone)) return setError("Please enter a valid Australian phone number.");
+    if (missing) return showError("Please complete all required fields.");
+    if (!/\S+@\S+\.\S+/.test(payload.email)) return showError("Please enter a valid email address.");
+    if (!isValidAustralianPhone(payload.phone)) return showError("Please enter a valid Australian phone number.");
     if (!(payload.ageConfirmed && payload.consent && payload.disclaimerAccepted && payload.australiaConfirmed)) {
-      return setError("All required confirmations and consent checkboxes must be checked.");
+      return showError("All required confirmations and consent checkboxes must be checked.");
     }
+
+    submitGenerationRef.current += 1;
+    const generation = submitGenerationRef.current;
 
     setLoading(true);
     try {
@@ -50,19 +64,24 @@ export default function ConsultationForm() {
 
       const data = (await response.json().catch(() => ({}))) as { error?: string };
 
+      if (generation !== submitGenerationRef.current) return;
+
       if (!response.ok) {
-        setError(data.error?.trim() || "Something went wrong. Please try again.");
+        showError(data.error?.trim() || "Something went wrong. Please try again.");
         return;
       }
 
-      setSuccess(
+      showSuccess(
         `Thank you, ${payload.fullName}. Your enquiry has been received. A member of our team will be in touch within 1–2 business days to discuss next steps. Please note this is not a medical assessment.`
       );
       event.currentTarget.reset();
     } catch {
-      setError("Network error. Please check your connection and try again.");
+      if (generation !== submitGenerationRef.current) return;
+      showError("Network error. Please check your connection and try again.");
     } finally {
-      setLoading(false);
+      if (generation === submitGenerationRef.current) {
+        setLoading(false);
+      }
     }
   };
 
